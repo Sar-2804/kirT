@@ -1,49 +1,45 @@
+import streamlit as st
 from openai import OpenAI
 
-# ==========================
-# Configuration
-# ==========================
-API_KEY = "YOUR_OPENAI_API_KEY"
+# Set your API key
+client = OpenAI(api_key="YOUR_OPENAI_API_KEY")
 
-client = OpenAI(api_key=API_KEY)
+st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 
-print("=" * 50)
-print("🤖 AI Chatbot")
-print("Type 'exit' to quit.")
-print("=" * 50)
+st.title("🤖 AI Chatbot")
 
-conversation = []
+# Store conversation
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-while True:
-    user_input = input("\nYou: ")
+# Display previous messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    if user_input.lower() in ["exit", "quit"]:
-        print("Bot: Goodbye!")
-        break
+# User input
+prompt = st.chat_input("Type your message...")
 
-    conversation.append(
-        {
-            "role": "user",
-            "content": user_input
-        }
+if prompt:
+    # Show user message
+    st.session_state.messages.append(
+        {"role": "user", "content": prompt}
     )
 
-    try:
-        response = client.responses.create(
-            model="gpt-5.5",
-            input=conversation
-        )
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-        bot_reply = response.output_text
+    # Get AI response
+    response = client.responses.create(
+        model="gpt-5.5",
+        input=st.session_state.messages
+    )
 
-        print("\nBot:", bot_reply)
+    reply = response.output_text
 
-        conversation.append(
-            {
-                "role": "assistant",
-                "content": bot_reply
-            }
-        )
+    st.session_state.messages.append(
+        {"role": "assistant", "content": reply}
+    )
 
-    except Exception as e:
-        print("Error:", e)
+    with st.chat_message("assistant"):
+        st.markdown(reply)

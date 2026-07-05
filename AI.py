@@ -4,18 +4,22 @@ from groq import Groq
 # -------------------------
 # Page setup
 # -------------------------
-st.set_page_config(
-    page_title="ChatGPT Clone (Free)",
-    page_icon="🤖",
-    layout="centered"
-)
-
-st.title("🤖 ChatGPT Clone (Free with Groq)")
+st.set_page_config(page_title="Stable AI Chatbot", page_icon="🤖", layout="centered")
+st.title("🤖 Stable ChatGPT Clone (No Model Errors)")
 
 # -------------------------
-# Load API key from secrets
+# API Key
 # -------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+# -------------------------
+# Stable model list (fallback system)
+# -------------------------
+MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768"
+]
 
 # -------------------------
 # Session memory
@@ -36,32 +40,38 @@ for msg in st.session_state.messages:
 prompt = st.chat_input("Type your message...")
 
 if prompt:
-    # Save user message
-    st.session_state.messages.append(
-        {"role": "user", "content": prompt}
-    )
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    try:
-        # -------------------------
-        # Groq API call (UPDATED MODEL)
-        # -------------------------
-        response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
-            messages=st.session_state.messages
-        )
+    reply = None
+    last_error = None
 
-        reply = response.choices[0].message.content
+    # -------------------------
+    # Try multiple models (AUTO FIX)
+    # -------------------------
+    for model in MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=st.session_state.messages
+            )
 
-        # Save assistant message
-        st.session_state.messages.append(
-            {"role": "assistant", "content": reply}
-        )
+            reply = response.choices[0].message.content
+            break
+
+        except Exception as e:
+            last_error = str(e)
+            continue
+
+    # -------------------------
+    # Show result or error
+    # -------------------------
+    if reply:
+        st.session_state.messages.append({"role": "assistant", "content": reply})
 
         with st.chat_message("assistant"):
             st.markdown(reply)
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+    else:
+        st.error(f"All models failed. Last error: {last_error}")

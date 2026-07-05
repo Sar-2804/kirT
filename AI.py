@@ -1,58 +1,48 @@
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 
-# -------------------------
-# Page config
-# -------------------------
-st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
+# -----------------------
+# Setup
+# -----------------------
+st.set_page_config(page_title="Free ChatGPT Clone", page_icon="🤖", layout="centered")
 
-st.title("🤖 AI Chatbot")
+st.title("🤖 Free ChatGPT Clone (Groq)")
 
-# -------------------------
-# Load API key from secrets
-# -------------------------
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# -------------------------
-# Session memory
-# -------------------------
+# -----------------------
+# Memory
+# -----------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -------------------------
-# Show chat history
-# -------------------------
+# -----------------------
+# Show chat
+# -----------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# -------------------------
-# User input
-# -------------------------
+# -----------------------
+# Input
+# -----------------------
 prompt = st.chat_input("Type your message...")
 
 if prompt:
-    # Save user message
-    st.session_state.messages.append(
-        {"role": "user", "content": prompt}
-    )
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("user"):
         st.markdown(prompt)
 
     try:
-        # Call OpenAI
-        response = client.responses.create(
-            model="gpt-4o-mini",
-            input=st.session_state.messages
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=st.session_state.messages
         )
 
-        reply = response.output_text
+        reply = response.choices[0].message.content
 
-        # Save assistant message
-        st.session_state.messages.append(
-            {"role": "assistant", "content": reply}
-        )
+        st.session_state.messages.append({"role": "assistant", "content": reply})
 
         with st.chat_message("assistant"):
             st.markdown(reply)

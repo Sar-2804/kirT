@@ -1,52 +1,28 @@
 import streamlit as st
 from openai import OpenAI
 
-# -----------------------------
-# Page Configuration
-# -----------------------------
-st.set_page_config(
-    page_title="AI Chatbot",
-    page_icon="🤖"
-)
+# Replace with your real OpenAI API key
+API_KEY = "YOUR_OPENAI_API_KEY"
+
+client = OpenAI(api_key=API_KEY)
+
+st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 
 st.title("🤖 AI Chatbot")
 
-# -----------------------------
-# Load API Key
-# -----------------------------
-try:
-    api_key = st.secrets["OPENAI_API_KEY"]
-except Exception:
-    st.error("OPENAI_API_KEY not found in Streamlit Secrets.")
-    st.stop()
-
-client = OpenAI(api_key=api_key)
-
-# -----------------------------
-# Session State
-# -----------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -----------------------------
-# Display Chat History
-# -----------------------------
+# Display previous messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# -----------------------------
-# Chat Input
-# -----------------------------
 prompt = st.chat_input("Type your message...")
 
 if prompt:
-    # Show user message
     st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": prompt
-        }
+        {"role": "user", "content": prompt}
     )
 
     with st.chat_message("user"):
@@ -61,14 +37,11 @@ if prompt:
         answer = response.output_text
 
         st.session_state.messages.append(
-            {
-                "role": "assistant",
-                "content": answer
-            }
+            {"role": "assistant", "content": answer}
         )
 
         with st.chat_message("assistant"):
             st.markdown(answer)
 
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(e)

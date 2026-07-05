@@ -1,29 +1,21 @@
 import streamlit as st
 from openai import OpenAI
 
-# Replace with your real OpenAI API key
-API_KEY = "YOUR_OPENAI_API_KEY"
-
-client = OpenAI(api_key=API_KEY)
-
-st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.title("🤖 AI Chatbot")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
 prompt = st.chat_input("Type your message...")
 
 if prompt:
-    st.session_state.messages.append(
-        {"role": "user", "content": prompt}
-    )
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -34,14 +26,12 @@ if prompt:
             input=st.session_state.messages
         )
 
-        answer = response.output_text
+        reply = response.output_text
 
-        st.session_state.messages.append(
-            {"role": "assistant", "content": answer}
-        )
+        st.session_state.messages.append({"role": "assistant", "content": reply})
 
         with st.chat_message("assistant"):
-            st.markdown(answer)
+            st.markdown(reply)
 
     except Exception as e:
-        st.error(e)
+        st.error(str(e))

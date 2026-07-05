@@ -20,18 +20,14 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    try:
-        response = client.responses.create(
-            model="gpt-5.5",
-            input=st.session_state.messages
-        )
+    response = client.responses.create(
+        model="gpt-5.5",
+        input=st.session_state.messages
+    )
 
-        reply = response.output_text
+    reply = response.output_text
 
-        st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.session_state.messages.append({"role": "assistant", "content": reply})
 
-        with st.chat_message("assistant"):
-            st.markdown(reply)
-
-    except Exception as e:
-        st.error(str(e))
+    with st.chat_message("assistant"):
+        st.markdown(reply)
